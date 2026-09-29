@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -11,41 +11,14 @@ import {
   View,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {login} from '../data/authRepository';
+import {useLoginForm} from '../hooks/useLoginForm';
 import {RootStackParamList} from '../navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export function LoginScreen({navigation}: Props) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [emailError, setEmailError] = useState<string | null>(null);
-
-  async function handleLogin() {
-    const normalizedEmail = email.trim();
-    const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
-    setEmailError(validEmail ? null : 'Enter a valid email address.');
-    setError(null);
-
-    if (!validEmail || password.length < 6) {
-      if (password.length < 6) {
-        setError('Password must be at least 6 characters.');
-      }
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await login(normalizedEmail, password);
-      navigation.replace('Dashboard');
-    } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : 'Sign in failed.');
-    } finally {
-      setLoading(false);
-    }
-  }
+  const {email, password, loading, error, emailError, changeEmail, changePassword, submit} =
+    useLoginForm(() => navigation.replace('Dashboard'));
 
   return (
     <KeyboardAvoidingView
@@ -64,7 +37,7 @@ export function LoginScreen({navigation}: Props) {
           autoComplete="email"
           autoCorrect={false}
           keyboardType="email-address"
-          onChangeText={value => {setEmail(value); setEmailError(null);}}
+          onChangeText={changeEmail}
           placeholder="you@example.com"
           placeholderTextColor="#9297AA"
           returnKeyType="next"
@@ -78,8 +51,8 @@ export function LoginScreen({navigation}: Props) {
           accessibilityLabel="Password"
           autoCapitalize="none"
           autoComplete="password"
-          onChangeText={value => {setPassword(value); setError(null);}}
-          onSubmitEditing={handleLogin}
+          onChangeText={changePassword}
+          onSubmitEditing={submit}
           placeholder="At least 6 characters"
           placeholderTextColor="#9297AA"
           returnKeyType="go"
@@ -92,7 +65,7 @@ export function LoginScreen({navigation}: Props) {
         <Pressable
           accessibilityRole="button"
           disabled={loading}
-          onPress={handleLogin}
+          onPress={submit}
           style={({pressed}) => [styles.button, pressed && !loading ? styles.pressed : null]}>
           {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.buttonText}>Sign in</Text>}
         </Pressable>

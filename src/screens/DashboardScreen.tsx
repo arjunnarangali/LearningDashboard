@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -10,48 +10,13 @@ import {
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {ProgressBar} from '../components/ProgressBar';
-import {Course} from '../domain/models';
 import {RootStackParamList} from '../navigation/types';
-import {useCourses} from '../state/CourseContext';
+import {useDashboard} from '../hooks/useDashboard';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 
 export function DashboardScreen({navigation}: Props) {
-  const {courses, loading, error, loadCourses} = useCourses();
-
-  useEffect(() => {
-    loadCourses();
-  }, [loadCourses]);
-
-  const openCourse = useCallback((course: Course) => {
-    navigation.navigate('CourseDetails', {courseId: course.id});
-  }, [navigation]);
-
-  function renderCourse({item}: {item: Course}) {
-    return (
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Continue ${item.title}`}
-        onPress={() => openCourse(item)}
-        style={({pressed}) => [styles.courseCard, pressed ? styles.pressed : null]}>
-        <View style={styles.courseTopline}>
-          <View style={styles.courseIcon}><Text style={styles.courseIconText}>{item.title.charAt(0)}</Text></View>
-          <Text style={styles.courseTag}>{item.lessons.length} LESSONS</Text>
-        </View>
-        <Text style={styles.courseTitle}>{item.title}</Text>
-        <Text style={styles.instructor}>with {item.instructor}</Text>
-        <View style={styles.progressHeading}>
-          <Text style={styles.progressLabel}>Your progress</Text>
-          <Text style={styles.progressValue}>{item.progress}%</Text>
-        </View>
-        <ProgressBar progress={item.progress} />
-        <View style={styles.continueRow}>
-          <Text style={styles.continueText}>Continue learning</Text>
-          <Text style={styles.arrow}>›</Text>
-        </View>
-      </Pressable>
-    );
-  }
+  const {courses, loading, error, retry, openCourse} = useDashboard(navigation);
 
   return (
     <View style={styles.screen}>
@@ -78,14 +43,36 @@ export function DashboardScreen({navigation}: Props) {
             <View style={styles.stateBox}>
               <Text style={styles.stateTitle}>Courses unavailable</Text>
               <Text style={styles.stateText}>{error}</Text>
-              <Pressable onPress={() => {loadCourses();}} style={styles.retryButton}><Text style={styles.retryText}>Try again</Text></Pressable>
+              <Pressable onPress={retry} style={styles.retryButton}><Text style={styles.retryText}>Try again</Text></Pressable>
             </View>
           ) : (
             <View style={styles.stateBox}><Text style={styles.stateTitle}>No courses yet</Text><Text style={styles.stateText}>Your courses will appear here when they are available.</Text></View>
           )
         }
-        refreshControl={<RefreshControl refreshing={loading && courses.length > 0} onRefresh={() => {loadCourses();}} tintColor="#5B5CE2" />}
-        renderItem={renderCourse}
+        refreshControl={<RefreshControl refreshing={loading && courses.length > 0} onRefresh={retry} tintColor="#5B5CE2" />}
+        renderItem={({item}) => (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Continue ${item.title}`}
+            onPress={() => openCourse(item)}
+            style={({pressed}) => [styles.courseCard, pressed ? styles.pressed : null]}>
+            <View style={styles.courseTopline}>
+              <View style={styles.courseIcon}><Text style={styles.courseIconText}>{item.title.charAt(0)}</Text></View>
+              <Text style={styles.courseTag}>{item.lessons.length} LESSONS</Text>
+            </View>
+            <Text style={styles.courseTitle}>{item.title}</Text>
+            <Text style={styles.instructor}>with {item.instructor}</Text>
+            <View style={styles.progressHeading}>
+              <Text style={styles.progressLabel}>Your progress</Text>
+              <Text style={styles.progressValue}>{item.progress}%</Text>
+            </View>
+            <ProgressBar progress={item.progress} />
+            <View style={styles.continueRow}>
+              <Text style={styles.continueText}>Continue learning</Text>
+              <Text style={styles.arrow}>›</Text>
+            </View>
+          </Pressable>
+        )}
       />
     </View>
   );

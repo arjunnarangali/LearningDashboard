@@ -1,20 +1,18 @@
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useNetworkStatus} from '../state/NetworkStatusContext';
+import {useNetworkBanner} from '../hooks/useNetworkBanner';
 
 export function NetworkStatusBanner() {
-  const {isOffline} = useNetworkStatus();
-  const insets = useSafeAreaInsets();
+  const {visible, paddingTop} = useNetworkBanner();
 
-  if (!isOffline) {
+  if (!visible) {
     return null;
   }
 
   return (
     <View
       accessibilityRole="alert"
-      style={[styles.banner, {paddingTop: Math.max(insets.top, 10)}]}>
+      style={[styles.banner, {paddingTop}]}>
       <Text style={styles.title}>You’re offline</Text>
       <Text style={styles.message}>
         Some features may be unavailable. Cached courses are available offline.

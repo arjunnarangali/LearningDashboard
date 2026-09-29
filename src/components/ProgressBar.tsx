@@ -1,15 +1,16 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
+import {useProgressBar} from '../hooks/useProgressBar';
 
 export function ProgressBar({progress}: {progress: number}) {
-  const boundedProgress = Math.max(0, Math.min(100, progress));
+  const {boundedProgress, fillWidth} = useProgressBar(progress);
 
   return (
     <View
       accessibilityRole="progressbar"
       accessibilityValue={{min: 0, max: 100, now: boundedProgress}}
       style={styles.track}>
-      <View style={[styles.fill, {width: `${boundedProgress}%`}]} />
+      <View style={[styles.fill, {width: fillWidth}]} />
     </View>
   );
 }

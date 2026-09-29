@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -10,30 +10,13 @@ import {
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {ProgressBar} from '../components/ProgressBar';
 import {RootStackParamList} from '../navigation/types';
-import {useCourses} from '../state/CourseContext';
+import {useCourseDetails} from '../hooks/useCourseDetails';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CourseDetails'>;
 
 export function CourseDetailsScreen({route}: Props) {
-  const {courses, completeLesson} = useCourses();
-  const course = useMemo(
-    () => courses.find(item => item.id === route.params.courseId),
-    [courses, route.params.courseId],
-  );
-  const [savingLesson, setSavingLesson] = useState<string | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
-
-  async function handleComplete(lessonId: string) {
-    setSavingLesson(lessonId);
-    setSaveError(null);
-    try {
-      await completeLesson(route.params.courseId, lessonId);
-    } catch {
-      setSaveError('Could not save your progress. Please try again.');
-    } finally {
-      setSavingLesson(null);
-    }
-  }
+  const {course, completedLessons, savingLesson, saveError, complete} =
+    useCourseDetails(route.params.courseId);
 
   if (!course) {
     return <View style={styles.center}><Text style={styles.missing}>Course not found.</Text></View>;
@@ -54,7 +37,7 @@ export function CourseDetailsScreen({route}: Props) {
 
       <View style={styles.lessonHeading}>
         <Text style={styles.sectionTitle}>Lessons</Text>
-        <Text style={styles.lessonCount}>{course.lessons.filter(lesson => lesson.completed).length} of {course.lessons.length} complete</Text>
+        <Text style={styles.lessonCount}>{completedLessons} of {course.lessons.length} complete</Text>
       </View>
 
       {saveError ? <Text accessibilityRole="alert" style={styles.error}>{saveError}</Text> : null}
@@ -75,7 +58,7 @@ export function CourseDetailsScreen({route}: Props) {
                 accessibilityRole="button"
                 accessibilityLabel={`Mark ${lesson.title} complete`}
                 disabled={savingLesson !== null}
-                onPress={() => {handleComplete(lesson.id);}}
+                onPress={() => {complete(lesson.id);}}
                 style={styles.completeButton}>
                 {isSaving ? <ActivityIndicator size="small" color="#5B5CE2" /> : <Text style={styles.completeText}>Complete</Text>}
               </Pressable>
