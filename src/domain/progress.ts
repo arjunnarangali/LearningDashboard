@@ -1,4 +1,4 @@
-import {Lesson} from './models';
+import { Lesson } from './models';
 
 export function calculateProgress(lessons: Lesson[]): number {
   if (lessons.length === 0) {

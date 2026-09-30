@@ -1,6 +1,10 @@
-import {Course, Lesson} from '../domain/models';
+import { Course, Lesson } from '../domain/models';
 
-function makeLessons(courseId: string, count: number, completedCount: number): Lesson[] {
+function makeLessons(
+  courseId: string,
+  count: number,
+  completedCount: number,
+): Lesson[] {
   const titles = [
     'Introduction',
     'Variables & Data Types',
@@ -12,7 +16,7 @@ function makeLessons(courseId: string, count: number, completedCount: number): L
     'Testing Fundamentals',
   ];
 
-  return Array.from({length: count}, (_, index) => ({
+  return Array.from({ length: count }, (_, index) => ({
     id: `${courseId}-lesson-${index + 1}`,
     title: titles[index] ?? `Lesson ${index + 1}`,
     // Keep the assignment's first four example lesson statuses intact while

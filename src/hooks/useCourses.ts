@@ -1,5 +1,5 @@
-import {useContext} from 'react';
-import {CourseContext} from '../state/course-context';
+import { useContext } from 'react';
+import { CourseContext } from '../state/course-context';
 
 export function useCourses() {
   const context = useContext(CourseContext);

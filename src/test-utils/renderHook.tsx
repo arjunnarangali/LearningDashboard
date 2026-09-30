@@ -1,12 +1,15 @@
-import React, {ComponentType, PropsWithChildren, ReactNode} from 'react';
-import ReactTestRenderer, {act} from 'react-test-renderer';
+import React, { ComponentType, PropsWithChildren, ReactNode } from 'react';
+import ReactTestRenderer, { act } from 'react-test-renderer';
 
 type RenderHookOptions = {
   wrapper?: ComponentType<PropsWithChildren>;
 };
 
-export function renderHook<Result>(callback: () => Result, options: RenderHookOptions = {}) {
-  const result = {current: undefined as Result};
+export function renderHook<Result>(
+  callback: () => Result,
+  options: RenderHookOptions = {},
+) {
+  const result = { current: undefined as Result };
   let unmountRenderer: () => void = () => {};
 
   function Probe() {
@@ -26,5 +29,5 @@ export function renderHook<Result>(callback: () => Result, options: RenderHookOp
     };
   });
 
-  return {result, unmount: unmountRenderer};
+  return { result, unmount: unmountRenderer };
 }

@@ -1,18 +1,16 @@
 import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
-import {useNetworkBanner} from '../hooks/useNetworkBanner';
+import { StyleSheet, Text, View } from 'react-native';
+import { useNetworkBanner } from '../hooks/useNetworkBanner';
 
 export function NetworkStatusBanner() {
-  const {visible, paddingTop} = useNetworkBanner();
+  const { visible, paddingTop } = useNetworkBanner();
 
   if (!visible) {
     return null;
   }
 
   return (
-    <View
-      accessibilityRole="alert"
-      style={[styles.banner, {paddingTop}]}>
+    <View accessibilityRole="alert" style={[styles.banner, { paddingTop }]}>
       <Text style={styles.title}>You’re offline</Text>
       <Text style={styles.message}>
         Some features may be unavailable. Cached courses are available offline.
@@ -29,6 +27,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#E9D7AD',
   },
-  title: {fontSize: 13, fontWeight: '800', color: '#704800'},
-  message: {fontSize: 12, color: '#8A5A00', marginTop: 2},
+  title: { fontSize: 13, fontWeight: '800', color: '#704800' },
+  message: { fontSize: 12, color: '#8A5A00', marginTop: 2 },
 });

@@ -1,5 +1,5 @@
-import {createContext} from 'react';
-import {Course, CourseLoadResult} from '../domain/models';
+import { createContext } from 'react';
+import { Course, CourseLoadResult } from '../domain/models';
 
 export type CourseContextValue = {
   courses: Course[];

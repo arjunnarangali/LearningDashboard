@@ -1,11 +1,11 @@
-import NetInfo, {NetInfoState} from '@react-native-community/netinfo';
-import {act} from 'react-test-renderer';
-import {useNetworkMonitor} from '../useNetworkMonitor';
-import {renderHook} from '../../test-utils/renderHook';
+import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
+import { act } from 'react-test-renderer';
+import { useNetworkMonitor } from '../useNetworkMonitor';
+import { renderHook } from '../../test-utils/renderHook';
 
 jest.mock('@react-native-community/netinfo', () => ({
   __esModule: true,
-  default: {addEventListener: jest.fn()},
+  default: { addEventListener: jest.fn() },
 }));
 
 describe('useNetworkMonitor', () => {
@@ -19,13 +19,23 @@ describe('useNetworkMonitor', () => {
       return unsubscribe;
     });
 
-    const {result, unmount} = renderHook(useNetworkMonitor);
+    const { result, unmount } = renderHook(useNetworkMonitor);
     expect(result.current.isOffline).toBe(false);
 
-    act(() => onChange?.({isConnected: true, isInternetReachable: false} as NetInfoState));
+    act(() =>
+      onChange?.({
+        isConnected: true,
+        isInternetReachable: false,
+      } as NetInfoState),
+    );
     expect(result.current.isOffline).toBe(true);
 
-    act(() => onChange?.({isConnected: true, isInternetReachable: true} as NetInfoState));
+    act(() =>
+      onChange?.({
+        isConnected: true,
+        isInternetReachable: true,
+      } as NetInfoState),
+    );
     expect(result.current.isOffline).toBe(false);
 
     unmount();

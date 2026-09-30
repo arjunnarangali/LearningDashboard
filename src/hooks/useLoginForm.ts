@@ -1,5 +1,5 @@
-import {useCallback, useState} from 'react';
-import {login} from '../data/authRepository';
+import { useCallback, useState } from 'react';
+import { login } from '../data/authRepository';
 
 export function useLoginForm(onSuccess: () => void) {
   const [email, setEmail] = useState('');
@@ -40,11 +40,22 @@ export function useLoginForm(onSuccess: () => void) {
       await login(normalizedEmail, password);
       onSuccess();
     } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : 'Sign in failed.');
+      setError(
+        loginError instanceof Error ? loginError.message : 'Sign in failed.',
+      );
     } finally {
       setLoading(false);
     }
   }, [email, loading, onSuccess, password]);
 
-  return {email, password, loading, error, emailError, changeEmail, changePassword, submit};
+  return {
+    email,
+    password,
+    loading,
+    error,
+    emailError,
+    changeEmail,
+    changePassword,
+    submit,
+  };
 }

@@ -1,11 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
-import {Course, CourseLoadResult} from '../domain/models';
-import {seedCourses} from './seedCourses';
+import { Course, CourseLoadResult } from '../domain/models';
+import { seedCourses } from './seedCourses';
 
 const CACHE_KEY = '@learning-dashboard/courses-v1';
 
-function isConnected(state: Awaited<ReturnType<typeof NetInfo.fetch>>): boolean {
+function isConnected(
+  state: Awaited<ReturnType<typeof NetInfo.fetch>>,
+): boolean {
   return state.isConnected !== false && state.isInternetReachable !== false;
 }
 
@@ -44,11 +46,15 @@ export const courseRepository = {
         const courses = remoteCourses.map(remoteCourse => {
           const savedCourse = cachedById.get(remoteCourse.id);
           return savedCourse
-            ? {...remoteCourse, progress: savedCourse.progress, lessons: savedCourse.lessons}
+            ? {
+                ...remoteCourse,
+                progress: savedCourse.progress,
+                lessons: savedCourse.lessons,
+              }
             : remoteCourse;
         });
         await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(courses));
-        return {courses, source: 'network'};
+        return { courses, source: 'network' };
       } catch {
         // Fall through to the last successful local snapshot.
       }
@@ -56,11 +62,12 @@ export const courseRepository = {
 
     const cached = await readCache();
     if (cached) {
-      return {courses: cached, source: 'cache'};
+      return { courses: cached, source: 'cache' };
     }
 
     throw new Error(
-      connection.isConnected === false || connection.isInternetReachable === false
+      connection.isConnected === false ||
+      connection.isInternetReachable === false
         ? 'You are offline and no saved courses are available yet.'
         : 'Courses could not be loaded. Please try again.',
     );

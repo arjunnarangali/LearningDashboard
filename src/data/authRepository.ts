@@ -3,7 +3,9 @@ export async function login(email: string, password: string): Promise<void> {
 
   // Intentional deterministic failure path for demonstrating the error state.
   if (email.toLowerCase().startsWith('error@')) {
-    throw new Error('We could not sign you in. Check your details and try again.');
+    throw new Error(
+      'We could not sign you in. Check your details and try again.',
+    );
   }
 
   if (!email || !password) {

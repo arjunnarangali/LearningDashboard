@@ -1,12 +1,16 @@
-import NetInfo, {NetInfoState} from '@react-native-community/netinfo';
-import {useEffect, useState} from 'react';
-import {initialNetworkStatus, NetworkStatus} from '../state/network-status-context';
+import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
+import { useEffect, useState } from 'react';
+import {
+  initialNetworkStatus,
+  NetworkStatus,
+} from '../state/network-status-context';
 
 export function toNetworkStatus(state: NetInfoState): NetworkStatus {
   return {
     isConnected: state.isConnected,
     isInternetReachable: state.isInternetReachable,
-    isOffline: state.isConnected === false || state.isInternetReachable === false,
+    isOffline:
+      state.isConnected === false || state.isInternetReachable === false,
   };
 }
 
