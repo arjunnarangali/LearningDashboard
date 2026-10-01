@@ -128,6 +128,3 @@ ESLint uses the React Native baseline plus Prettier integration. Formatting viol
 
 For iOS native dependency installation, run `bundle install` once if needed, then `bundle exec pod install` from `ios/` after installing or changing native dependencies.
 
-## AI-agent implementation guidance
-
-Use `TASK.md` as the resumable checklist and this README as the acceptance criteria. Before continuing work, inspect the current files and Git status, then resume from the first unchecked task in `TASK.md`. After each task, update its checkbox and progress log with changed areas and checks run. Keep the original `TestmobileApp` project untouched.
