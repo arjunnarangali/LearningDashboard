@@ -16,7 +16,7 @@ import { useDashboard } from '../hooks/useDashboard';
 type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 
 export function DashboardScreen({ navigation }: Props) {
-  const { courses, loading, error, retry, openCourse } =
+  const { courses, loading, error, retry, openCourse, currentEmail, signOut } =
     useDashboard(navigation);
 
   return (
@@ -32,6 +32,12 @@ export function DashboardScreen({ navigation }: Props) {
             <Text style={styles.subheading}>
               Pick up right where you left off.
             </Text>
+            <View style={styles.userRow}>
+              <Text style={styles.userEmail}>{currentEmail}</Text>
+              <Pressable accessibilityRole="button" onPress={signOut}>
+                <Text style={styles.signOut}>Switch user</Text>
+              </Pressable>
+            </View>
             {error && courses.length > 0 ? (
               <View style={styles.refreshWarning}>
                 <Text style={styles.refreshWarningText}>
@@ -127,6 +133,14 @@ const styles = StyleSheet.create({
     marginTop: 7,
   },
   subheading: { fontSize: 14, color: '#777C91', marginTop: 5 },
+  userRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  userEmail: { fontSize: 12, color: '#777C91' },
+  signOut: { fontSize: 12, fontWeight: '700', color: '#5153D1' },
   refreshWarning: {
     backgroundColor: '#FFF3D9',
     borderRadius: 10,

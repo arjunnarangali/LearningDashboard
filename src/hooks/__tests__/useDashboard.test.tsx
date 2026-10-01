@@ -1,6 +1,7 @@
 import React from 'react';
 import { act } from 'react-test-renderer';
 import { CourseContext, CourseContextValue } from '../../state/course-context';
+import { UserSessionContext } from '../../state/user-session-context';
 import { useDashboard } from '../useDashboard';
 import { renderHook } from '../../test-utils/renderHook';
 
@@ -26,7 +27,17 @@ describe('useDashboard', () => {
       completeLesson: jest.fn(async () => undefined),
     };
     const wrapper = ({ children }: React.PropsWithChildren) => (
-      <CourseContext.Provider value={value}>{children}</CourseContext.Provider>
+      <UserSessionContext.Provider
+        value={{
+          currentEmail: 'reader@example.com',
+          setCurrentEmail: jest.fn(async () => undefined),
+          clearCurrentEmail: jest.fn(),
+        }}
+      >
+        <CourseContext.Provider value={value}>
+          {children}
+        </CourseContext.Provider>
+      </UserSessionContext.Provider>
     );
     const { result } = renderHook(() => useDashboard(navigation), { wrapper });
 

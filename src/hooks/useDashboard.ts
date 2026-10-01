@@ -3,6 +3,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Course } from '../domain/models';
 import { RootStackParamList } from '../navigation/types';
 import { useCourses } from './useCourses';
+import { useUserSession } from './useUserSession';
 
 type DashboardNavigation = NativeStackNavigationProp<
   RootStackParamList,
@@ -10,6 +11,7 @@ type DashboardNavigation = NativeStackNavigationProp<
 >;
 
 export function useDashboard(navigation: DashboardNavigation) {
+  const { currentEmail, clearCurrentEmail } = useUserSession();
   const { loadCourses, ...courseState } = useCourses();
 
   useEffect(() => {
@@ -27,5 +29,17 @@ export function useDashboard(navigation: DashboardNavigation) {
     loadCourses();
   }, [loadCourses]);
 
-  return { ...courseState, loadCourses, openCourse, retry };
+  const signOut = useCallback(() => {
+    clearCurrentEmail();
+    navigation.replace('Login');
+  }, [clearCurrentEmail, navigation]);
+
+  return {
+    ...courseState,
+    currentEmail,
+    loadCourses,
+    openCourse,
+    retry,
+    signOut,
+  };
 }

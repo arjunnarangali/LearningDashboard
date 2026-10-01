@@ -1,97 +1,123 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# LearningDashboard
 
-# Getting Started
+A focused React Native implementation of the Senior Mobile App Developer assignment. It demonstrates mock sign-in, a course dashboard, course details, lesson completion, offline course access, and a business-logic unit test. The app targets Android and iOS from one TypeScript codebase.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## User journeys and expected cases
 
-## Step 1: Start Metro
+### Sign in
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+1. The app opens on Login with email and password fields.
+2. The user enters an email and password and taps **Sign in**.
+3. Invalid or missing input is explained inline; no request is made.
+4. A valid submission displays a loading state and prevents duplicate submissions.
+5. On mock success, Login is replaced by the Course Dashboard.
+6. On mock failure, an error is shown and the user can retry.
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+The mock accepts any valid email and a password of at least six characters. An email beginning with `error@` triggers the deterministic error state. There is no registration flow: the normalized email is the local progress identity, and login metadata is created automatically after successful mock sign-in. Passwords are not stored. The active email remains in memory for the current app session, so users sign in again after restarting the app.
+
+### Per-email progress
+
+- On the first successful login for an email, the user gets the assignment's default courses and initial progress values: 65%, 40%, and 25%.
+- Course completion state is saved in an AsyncStorage key scoped to the normalized email (`trim` + lowercase). Completing lessons updates only that email's saved data.
+- Signing in again with the same email restores that user's saved lessons and progress. A different email gets its own initial defaults; it cannot see the previous email's progress.
+- A small user registry records normalized email, active status, first/last login timestamps, and login count. It does not contain passwords.
+- For an upgrade from the former shared course-cache key, the first email to load courses claims and migrates that unassigned snapshot to its email-specific cache. The migration owner is recorded so the legacy data cannot be copied to another email. Later emails start with their own defaults.
+- **Switch user** on the dashboard returns to Login without deleting the prior email's progress.
+
+### Browse courses
+
+After sign-in, the dashboard loads and displays course title, instructor, progress, lesson count, and a Continue action. Tapping a course or Continue opens its details.
+
+| Course                 | Instructor     | Initial progress | Lessons |
+| ---------------------- | -------------- | ---------------: | ------: |
+| Python Programming     | John Smith     |              65% |      20 |
+| Generative AI          | Sarah Williams |              40% |      16 |
+| Full Stack Development | David Brown    |              25% |      28 |
+
+Dashboard states are loading, success, empty, failure with cached courses, and failure without cached courses. A retry action is available when there is no data to show. Pull to refresh retries the load. When showing saved data, the screen identifies it as offline/cached content.
+
+An app-wide connectivity listener also monitors internet access independently of the current route. When the device loses network connectivity or internet reachability, a shared offline banner appears above every screen—including Login and Course Details—and disappears automatically when connectivity returns.
+
+### View details and complete a lesson
+
+Course Details shows the course title, instructor, progress, and lessons with Completed or Pending status. The assignment’s example lesson statuses are preserved for Python Programming:
+
+- Introduction — Completed
+- Variables & Data Types — Completed
+- Functions — Pending
+- Object-Oriented Programming — Pending
+
+The user can mark a pending lesson as complete. The lesson status and course progress update, and the updated state is saved locally. Repeating completion does not count the same lesson twice. Progress is bounded from 0% to 100%; an empty lesson list calculates to 0%.
+
+The assignment supplies aggregate starting progress values that are not always exactly representable as a whole number of completed lessons (for example, 40% of 16). Those initial values are displayed as supplied. After a lesson is completed, progress is recalculated from completed lessons using `round(completed / total * 100)`.
+
+## Architecture
+
+The app uses a small layered structure:
+
+- `src/screens/` — Login, Dashboard, and Course Details presentation.
+- `src/components/` — reusable UI such as the progress bar.
+- `src/hooks/` — screen state, side effects, validation, navigation actions, course operations, and UI-derived state.
+- `src/domain/` — TypeScript models and progress business logic.
+- `src/data/` — mock authentication, per-email user registry, mock course source, and per-email course cache.
+- `src/state/` — shared course state and the active email for the current session.
+- `src/state/NetworkStatusContext.tsx` — app-wide NetInfo subscription, context, and `useNetworkStatus()` custom hook.
+- `src/components/NetworkStatusBanner.tsx` — shared offline banner mounted above the navigator so it is visible on every route.
+- `src/navigation/` — typed native-stack navigation.
+- `src/hooks/__tests__/` — focused unit tests for every custom hook.
+
+Screens are presentation-focused and use custom hooks for form state, lifecycle effects, navigation actions, lesson completion, network monitoring, and other behavior. Providers compose hook-managed state into React context. Course loading and persistence delegate to the repository; the mock course API is isolated behind `courseRepository`, so a real HTTP client can replace it without coupling network code to UI.
+
+## Offline support
+
+`NetworkStatusProvider` subscribes to `NetInfo.addEventListener` once at the app root, updates shared connectivity state, and cleans up the subscription on unmount. `useNetworkStatus()` exposes `isConnected`, `isInternetReachable`, and `isOffline` to UI components. A connectivity value of `false` for either connection or internet reachability marks the app offline; unknown (`null`) values do not incorrectly show an offline banner. `NetworkStatusBanner` consumes the hook and is mounted outside the navigation routes, so a connection-loss banner is shown on every screen and clears when the listener reports recovery.
+
+Separately, on a successful course load, the repository stores courses and lesson state in AsyncStorage. It checks connectivity with NetInfo and loads that saved snapshot when offline. After lesson completion, the updated course snapshot is persisted as well. If offline before any successful course load, the dashboard shows an explanatory error and retry action in addition to the global banner.
+
+The remote source is currently mocked in `src/data/courseRepository.ts`; it returns the assignment’s local sample data when connected. The app-wide NetInfo listener and repository connectivity check serve separate purposes: the listener drives global UI feedback, while the repository decides whether to fetch or use the persistent cache. Together they exercise offline behavior without requiring a backend.
+
+## Security and scale
+
+Authentication is intentionally mocked. In production, short-lived tokens should be stored using platform-backed secure storage (iOS Keychain and Android Keystore-backed storage), not ordinary preferences or plain AsyncStorage.
+
+For one million users and hundreds of courses, improve the design with:
+
+1. Paginated APIs and server-side filtering.
+2. Versioned cache data, refresh policy, and explicit stale-data handling.
+3. Secure authentication, token refresh, and authorization.
+4. Crash reporting, analytics, structured logs, and performance monitoring.
+5. CI builds plus broader integration and end-to-end coverage.
+
+The equivalent native implementation could use SwiftUI with async data/repository services and Keychain-backed token storage on iOS, or Jetpack Compose with repositories, coroutines/Flow, Room, and Android Keystore-backed token storage on Android.
+
+## Run, test, and build
+
+Requirements: Node.js `>=22.11.0`, plus the Android SDK/emulator for Android and Xcode/CocoaPods for iOS. Install packages with `npm install`, then start Metro:
 
 ```sh
-# Using npm
 npm start
-
-# OR using Yarn
-yarn start
 ```
 
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
+In another terminal:
 
 ```sh
-# Using npm
 npm run android
-
-# OR using Yarn
-yarn android
-```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
+# or
 npm run ios
-
-# OR using Yarn
-yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+Run checks:
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+```sh
+npm test
+npm run lint
+npm run format:check
+npx tsc --noEmit
+```
 
-## Step 3: Modify your app
+Every application custom hook has a corresponding test under `src/hooks/__tests__/`, covering validation, course loading and per-email progress persistence/isolation, user registry updates, route actions, offline state transitions, banner visibility, and progress-bar bounds. Repository tests under `src/data/__tests__/` cover progress isolation and legacy-cache migration.
 
-Now that you have successfully run the app, let's make changes!
+ESLint uses the React Native baseline plus Prettier integration. Formatting violations are reported as ESLint errors. `npm run lint:fix` applies safe ESLint fixes, and `npm run format` formats authored source, config, and documentation files.
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+For iOS native dependency installation, run `bundle install` once if needed, then `bundle exec pod install` from `ios/` after installing or changing native dependencies.
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.

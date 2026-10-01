@@ -1,7 +1,9 @@
 import { useCallback, useState } from 'react';
 import { login } from '../data/authRepository';
+import { useUserSession } from './useUserSession';
 
 export function useLoginForm(onSuccess: () => void) {
+  const { setCurrentEmail } = useUserSession();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -38,6 +40,7 @@ export function useLoginForm(onSuccess: () => void) {
     setLoading(true);
     try {
       await login(normalizedEmail, password);
+      await setCurrentEmail(normalizedEmail);
       onSuccess();
     } catch (loginError) {
       setError(
@@ -46,7 +49,7 @@ export function useLoginForm(onSuccess: () => void) {
     } finally {
       setLoading(false);
     }
-  }, [email, loading, onSuccess, password]);
+  }, [email, loading, onSuccess, password, setCurrentEmail]);
 
   return {
     email,

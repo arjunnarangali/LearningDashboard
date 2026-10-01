@@ -1,6 +1,7 @@
 import { act } from 'react-test-renderer';
 import { courseRepository } from '../../data/courseRepository';
 import { Course } from '../../domain/models';
+import { UserSessionContext } from '../../state/user-session-context';
 import { useCourseController } from '../useCourseController';
 import { renderHook } from '../../test-utils/renderHook';
 
@@ -9,6 +10,17 @@ jest.mock('../../data/courseRepository', () => ({
 }));
 
 const mockRepository = jest.mocked(courseRepository);
+const wrapper = ({ children }: React.PropsWithChildren) => (
+  <UserSessionContext.Provider
+    value={{
+      currentEmail: 'reader@example.com',
+      setCurrentEmail: jest.fn(async () => undefined),
+      clearCurrentEmail: jest.fn(),
+    }}
+  >
+    {children}
+  </UserSessionContext.Provider>
+);
 const sampleCourse: Course = {
   id: 'course-1',
   title: 'Course',
@@ -28,7 +40,7 @@ describe('useCourseController', () => {
       courses: [sampleCourse],
       source: 'network',
     });
-    const { result } = renderHook(useCourseController);
+    const { result } = renderHook(useCourseController, { wrapper });
 
     await act(async () => result.current.loadCourses());
 
@@ -43,7 +55,7 @@ describe('useCourseController', () => {
       courses: [sampleCourse],
       source: 'cache',
     });
-    const { result } = renderHook(useCourseController);
+    const { result } = renderHook(useCourseController, { wrapper });
     await act(async () => result.current.loadCourses());
     mockRepository.saveCourses.mockResolvedValueOnce();
 
@@ -54,6 +66,7 @@ describe('useCourseController', () => {
     expect(result.current.courses[0].lessons[0].completed).toBe(true);
     expect(result.current.courses[0].progress).toBe(100);
     expect(mockRepository.saveCourses).toHaveBeenCalledWith(
+      'reader@example.com',
       result.current.courses,
     );
 
