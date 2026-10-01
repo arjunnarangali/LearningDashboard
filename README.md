@@ -1,6 +1,6 @@
 # LearningDashboard
 
-A focused React Native implementation of the Senior Mobile App Developer assignment. It demonstrates mock sign-in, a course dashboard, course details, lesson completion, offline course access, and a business-logic unit test. The app targets Android and iOS from one TypeScript codebase.
+A React Native learning dashboard for Android and iOS, built with TypeScript. It includes mock sign-in, a course dashboard, course details, lesson completion, offline access, and tests for its business logic.
 
 ## User journeys and expected cases
 
@@ -17,7 +17,7 @@ The mock accepts any valid email and a password of at least six characters. An e
 
 ### Per-email progress
 
-- On the first successful login for an email, the user gets the assignment's default courses and initial progress values: 65%, 40%, and 25%.
+- On the first successful login for an email, the user gets the default courses and initial progress values: 65%, 40%, and 25%.
 - Course completion state is saved in an AsyncStorage key scoped to the normalized email (`trim` + lowercase). Completing lessons updates only that email's saved data.
 - Signing in again with the same email restores that user's saved lessons and progress. A different email gets its own initial defaults; it cannot see the previous email's progress.
 - A small user registry records normalized email, active status, first/last login timestamps, and login count. It does not contain passwords.
@@ -40,7 +40,7 @@ An app-wide connectivity listener also monitors internet access independently of
 
 ### View details and complete a lesson
 
-Course Details shows the course title, instructor, progress, and lessons with Completed or Pending status. The assignment’s example lesson statuses are preserved for Python Programming:
+Course Details shows the course title, instructor, progress, and lessons with Completed or Pending status. Python Programming starts with these lesson statuses:
 
 - Introduction — Completed
 - Variables & Data Types — Completed
@@ -49,7 +49,7 @@ Course Details shows the course title, instructor, progress, and lessons with Co
 
 The user can mark a pending lesson as complete. The lesson status and course progress update, and the updated state is saved locally. Repeating completion does not count the same lesson twice. Progress is bounded from 0% to 100%; an empty lesson list calculates to 0%.
 
-The assignment supplies aggregate starting progress values that are not always exactly representable as a whole number of completed lessons (for example, 40% of 16). Those initial values are displayed as supplied. After a lesson is completed, progress is recalculated from completed lessons using `round(completed / total * 100)`.
+Initial course progress is displayed as provided by the course data. Some initial percentages are not exactly representable as a whole number of completed lessons (for example, 40% of 16). After a lesson is completed, progress is recalculated from completed lessons using `round(completed / total * 100)`.
 
 ## Architecture
 
@@ -74,7 +74,7 @@ Screens are presentation-focused and use custom hooks for form state, lifecycle 
 
 Separately, on a successful course load, the repository stores courses and lesson state in AsyncStorage. It checks connectivity with NetInfo and loads that saved snapshot when offline. After lesson completion, the updated course snapshot is persisted as well. If offline before any successful course load, the dashboard shows an explanatory error and retry action in addition to the global banner.
 
-The remote source is currently mocked in `src/data/courseRepository.ts`; it returns the assignment’s local sample data when connected. The app-wide NetInfo listener and repository connectivity check serve separate purposes: the listener drives global UI feedback, while the repository decides whether to fetch or use the persistent cache. Together they exercise offline behavior without requiring a backend.
+The remote source is currently mocked in `src/data/courseRepository.ts`; it returns the local sample course data when connected. The app-wide NetInfo listener and repository connectivity check serve separate purposes: the listener drives global UI feedback, while the repository decides whether to fetch or use the persistent cache. Together they exercise offline behavior without requiring a backend.
 
 ## Security and scale
 
@@ -127,3 +127,7 @@ Every application custom hook has a corresponding test under `src/hooks/__tests_
 ESLint uses the React Native baseline plus Prettier integration. Formatting violations are reported as ESLint errors. `npm run lint:fix` applies safe ESLint fixes, and `npm run format` formats authored source, config, and documentation files.
 
 For iOS native dependency installation, run `bundle install` once if needed, then `bundle exec pod install` from `ios/` after installing or changing native dependencies.
+
+## AI-agent implementation guidance
+
+Use `TASK.md` as the resumable checklist and this README as the acceptance criteria. Before continuing work, inspect the current files and Git status, then resume from the first unchecked task in `TASK.md`. After each task, update its checkbox and progress log with changed areas and checks run. Keep the original `TestmobileApp` project untouched.
