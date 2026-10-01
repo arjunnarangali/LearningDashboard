@@ -90,6 +90,13 @@ For one million users and hundreds of courses, improve the design with:
 
 The equivalent native implementation could use SwiftUI with async data/repository services and Keychain-backed token storage on iOS, or Jetpack Compose with repositories, coroutines/Flow, Room, and Android Keystore-backed token storage on Android.
 
+## Demo artifacts
+
+The `demo/` directory contains the deliverables for reviewing and running the app:
+
+- [iOS screen recording](demo/ios-recording.mov) — walkthrough of the application on iOS.
+- [Android release APK](demo/app-release.apk) — installable Android build.
+
 ## Run, test, and build
 
 Requirements: Node.js `>=22.11.0`, plus the Android SDK/emulator for Android and Xcode/CocoaPods for iOS. Install packages with `npm install`, then start Metro:
@@ -120,4 +127,3 @@ Every application custom hook has a corresponding test under `src/hooks/__tests_
 ESLint uses the React Native baseline plus Prettier integration. Formatting violations are reported as ESLint errors. `npm run lint:fix` applies safe ESLint fixes, and `npm run format` formats authored source, config, and documentation files.
 
 For iOS native dependency installation, run `bundle install` once if needed, then `bundle exec pod install` from `ios/` after installing or changing native dependencies.
-
